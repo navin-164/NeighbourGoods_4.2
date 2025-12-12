@@ -1,0 +1,74 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+/* --- Item Card Styles --- */
+.item-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Makes cards in a row equal height */
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.item-card-img {
+    height: 200px;
+    object-fit: cover; /* Ensures image covers the area, crops if needed */
+    border-bottom: 1px solid #eee;
+}
+
+.item-card-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.item-card-price-day {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #28a745;
+}
+
+/* Make card footer stick to bottom */
+.item-card .card-body {
+    flex-grow: 1;
+}
+
+.card-footer-item {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* --- Star Rating Styles --- */
+.star-rating {
+    font-size: 1.5rem;
+    color: #adb5bd;
+    cursor: pointer;
+}
+.star-rating .bi {
+    transition: color 0.1s ease-in-out;
+}
+.star-rating .bi:hover,
+.star-rating .bi-star-fill {
+    color: #ffc107;
+}
+
+/* Auth message */
+#auth-message {
+  font-size: 0.9rem;
+  margin-top: 15px;
+}
+
+/* Simple active state for nav links */
+.nav-link.active-nav {
+    font-weight: bold;
+    color: #fff !important;
+}

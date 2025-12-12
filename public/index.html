@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeighbourGoods</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#">NeighbourGoods</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <!-- Logged In Links: Simplified -->
+          <li class="nav-item d-none" id="nav-market-link">
+            <a class="nav-link active-nav" href="#" id="show-main-feed-btn">Market</a>
+          </li>
+          <li class="nav-item d-none" id="nav-dashboard-link">
+             <a class="nav-link" href="#" id="show-dashboard-btn">My Dashboard</a>
+          </li>
+          <!-- Auth Links -->
+          <li class="nav-item" id="nav-login">
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#authModal">Login / Register</a>
+          </li>
+          <li class="nav-item d-none" id="nav-user">
+            <a class="nav-link" href="#" id="welcome-message"></a>
+          </li>
+          <li class="nav-item d-none" id="nav-logout">
+            <a class="nav-link" href="#" id="logout-button">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container my-4">
+
+    <!-- Logged-out View -->
+    <div id="logged-out-view">
+      <div class="p-5 mb-4 bg-light rounded-3 text-center">
+        <h1 class="display-5 fw-bold">Welcome to NeighbourGoods</h1>
+        <p class="fs-4">A community marketplace to borrow, lend, and sell everyday items.</p>
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#authModal">
+          Get Started
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Feed (Marketplace) View -->
+    <div id="main-feed-view" class="d-none">
+      <!-- Form to List a New Item -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h3 class="card-title">Lend or Sell an Item</h3>
+          <form id="post-item-form">
+            <div class="mb-3">
+              <label class="form-label">What do you want to do?</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="listingType" id="type-borrow" value="borrow" checked>
+                <label class="form-check-label" for="type-borrow">Lend for borrowing</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="listingType" id="type-sale" value="sale">
+                <label class="form-check-label" for="type-sale">Sell the item</label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="item-name" class="form-label">Item Name</label>
+              <input type="text" class="form-control" id="item-name" placeholder="E.g., Electric Drill" required>
+            </div>
+            <div class="mb-3">
+              <label for="item-desc" class="form-label">Description</label>
+              <textarea class="form-control" id="item-desc" rows="3" required></textarea>
+            </div>
+            <div class="mb-3" id="price-borrow-field">
+              <label for="item-price-day" class="form-label">Price per Day ($)</label>
+              <input type="number" class="form-control" id="item-price-day" min="0" step="0.50" placeholder="0 for free">
+            </div>
+            <div class="mb-3 d-none" id="price-sale-field">
+              <label for="item-price-sale" class="form-label">Sale Price ($)</label>
+              <input type="number" class="form-control" id="item-price-sale" min="0" step="1.00" placeholder="Set a final price">
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="item-category" class="form-label">Category</label>
+                <select class="form-select" id="item-category" required>
+                  <option value="Tools">Tools</option>
+                  <option value="Camping">Camping</option>
+                  <option value="Kitchen">Kitchen</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="item-image" class="form-label">Upload Image</label>
+                <input class="form-control" type="file" id="item-image" accept="image/*">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">List My Item</button>
+          </form>
+        </div>
+      </div>
+      <h2 class="mb-3">Available Items in Your Community</h2>
+      <div id="items-grid" class="row g-4">
+        <p id="items-loading">Loading items...</p>
+      </div>
+    </div>
+    
+    <!-- Unified Dashboard View -->
+    <div id="dashboard-view" class="d-none">
+        <h2 class="mb-3">My Dashboard</h2>
+
+        <!-- Recommendations Section -->
+        <div id="recommendations-section" class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title">Recommended For You</h4>
+                <div id="recommendations-grid" class="row g-3"></div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Tabs -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="dashboardTab" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="my-items-tab" data-bs-toggle="tab" data-bs-target="#my-items-panel" type="button" role="tab">My Items (Lending)</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="my-transactions-tab" data-bs-toggle="tab" data-bs-target="#my-transactions-panel" type="button" role="tab">My Transactions (Borrowing/Buying)</button>
+                  </li>
+                </ul>
+                <div class="tab-content pt-3" id="dashboardTabContent">
+                  <!-- My Items (Lending) Panel -->
+                  <div class="tab-pane fade show active" id="my-items-panel" role="tabpanel">
+                      <h4 class="card-title">My Listed Items</h4>
+                      <div id="lender-items-available" class="mb-4"><h5>Available</h5><div class="row g-3"></div></div>
+                      <div id="lender-items-borrowed" class="mb-4"><h5>Out on Loan</h5><div class="row g-3"></div></div>
+                      <div id="lender-items-sold"><h5>Sold</h5><div class="row g-3"></div></div>
+                  </div>
+                  <!-- My Transactions Panel -->
+                  <div class="tab-pane fade" id="my-transactions-panel" role="tabpanel">
+                      <h4 class="card-title">My Transaction History</h4>
+                      <div id="customer-items-borrowed" class="mb-4"><h5>My Borrowed Items</h5><div class="row g-3"></div></div>
+                      <div id="customer-items-purchased"><h5>My Purchased Items</h5><div class="row g-3"></div></div>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Login or Register</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="login-form">
+            <h4>Login</h4>
+            <div class="mb-3">
+              <label for="login-email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="login-email" required>
+            </div>
+            <div class="mb-3">
+              <label for="login-password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="login-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+            <a href="#" class="float-end" id="show-register">Need an account?</a>
+          </form>
+          <form id="register-form" class="d-none">
+            <h4>Register</h4>
+            <div class="mb-3">
+              <label for="reg-name" class="form-label">Name</label>
+              <input type="text" class="form-control" id="reg-name" required>
+            </div>
+            <div class="mb-3">
+              <label for="reg-email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="reg-email" required>
+            </div>
+            <div class="mb-3">
+              <label for="reg-password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="reg-password" required>
+            </div>
+            <button type="submit" class="btn btn-success">Register</button>
+            <a href="#" class="float-end" id="show-login">Have an account?</a>
+          </form>
+          <div id="auth-message" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Rating Modal -->
+  <div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rate Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="rating-form">
+            <div class="modal-body">
+                <p>You are rating: <strong id="rate-item-name"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div class="star-rating">
+                        <i class="bi bi-star" data-value="1"></i>
+                        <i class="bi bi-star" data-value="2"></i>
+                        <i class="bi bi-star" data-value="3"></i>
+                        <i class="bi bi-star" data-value="4"></i>
+                        <i class="bi bi-star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" id="rate-stars" value="0" required>
+                </div>
+                <div class="mb-3">
+                    <label for="rate-comment" class="form-label">Comment (Optional)</label>
+                    <textarea class="form-control" id="rate-comment" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="rate-item-id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Submit Rating</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
