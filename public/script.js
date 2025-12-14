@@ -244,27 +244,55 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // --- Global Functions for Buttons ---
 
+  // window.borrowItem = async (itemId) => {
+  //   if (!confirm('Are you sure you want to borrow this item?')) return;
+  //   try {
+  //       await apiFetch(`/api/items/${itemId}/borrow`, 'PUT');
+  //       alert('Item successfully borrowed!');
+  //       loadItems();
+  //   } catch (err) {
+  //       alert(`Error: ${err.message}`);
+  //   }
+  // }
   window.borrowItem = async (itemId) => {
-    if (!confirm('Are you sure you want to borrow this item?')) return;
-    try {
-        await apiFetch(`/api/items/${itemId}/borrow`, 'PUT');
-        alert('Item successfully borrowed!');
-        loadItems();
-    } catch (err) {
-        alert(`Error: ${err.message}`);
-    }
+  if (!confirm('Are you sure you want to borrow this item?')) return;
+  try {
+      // Send to Order Service (Port 5003 via Gateway)
+      await apiFetch('/api/orders', 'POST', { 
+        itemId: itemId, 
+        type: 'borrow' 
+      }); 
+      alert('Item successfully borrowed!');
+      loadItems();
+  } catch (err) {
+      alert(`Error: ${err.message}`);
   }
+}
   
+  // window.buyItem = async (itemId) => {
+  //   if (!confirm('Are you sure you want to purchase this item?')) return;
+  //   try {
+  //       await apiFetch(`/api/items/${itemId}/buy`, 'POST');
+  //       alert('Item successfully purchased!');
+  //       loadItems();
+  //   } catch (err) {
+  //       alert(`Error: ${err.message}`);
+  //   }
+  // }
   window.buyItem = async (itemId) => {
-    if (!confirm('Are you sure you want to purchase this item?')) return;
-    try {
-        await apiFetch(`/api/items/${itemId}/buy`, 'POST');
-        alert('Item successfully purchased!');
-        loadItems();
-    } catch (err) {
-        alert(`Error: ${err.message}`);
-    }
+  if (!confirm('Are you sure you want to purchase this item?')) return;
+  try {
+      // Send to Order Service (Port 5003 via Gateway)
+      await apiFetch('/api/orders', 'POST', { 
+        itemId: itemId, 
+        type: 'sale' 
+      }); 
+      alert('Item successfully purchased!');
+      loadItems();
+  } catch (err) {
+      alert(`Error: ${err.message}`);
   }
+}
   
   window.openRatingModal = (itemId, itemName) => {
       rateItemIdInput.value = itemId;
@@ -306,13 +334,14 @@ document.addEventListener('DOMContentLoaded', () => {
                               ${item.status === 'Available' ? button : `<span class="badge bg-secondary">${item.status}</span>`}
                             </div>`;
               break;
-          case 'customer':
-              const hasRated = item.ratings.some(r => r.user === user.id);
-              cardFooter = `<div class="d-flex justify-content-between align-items-center">
-                              <span class="card-footer-item">From: ${escapeHTML(item.ownerName)}</span>
-                              <button class="btn btn-sm btn-warning ${hasRated ? 'disabled' : ''}" onclick="openRatingModal('${item._id}', '${escapeHTML(item.name)}')">${hasRated ? 'Rated' : 'Rate'}</button>
-                            </div>`;
-              break;
+case 'customer':
+    // Use (item.ratings || []) to fallback to an empty array if ratings is missing
+    const hasRated = (item.ratings || []).some(r => r.user === user.id);
+    cardFooter = `<div class="d-flex justify-content-between align-items-center">
+                    <span class="card-footer-item">From: ${escapeHTML(item.ownerName)}</span>
+                    <button class="btn btn-sm btn-warning ${hasRated ? 'disabled' : ''}" onclick="openRatingModal('${item._id}', '${escapeHTML(item.name)}')">${hasRated ? 'Rated' : 'Rate'}</button>
+                  </div>`;
+    break;
           default: // lender
               cardFooter = `<span class="card-footer-item">Status: <strong>${item.status}</strong></span>`;
       }

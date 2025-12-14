@@ -34,18 +34,45 @@ router.get('/dashboard/lender', authMiddleware, async (req, res) => {
 });
 
 // CREATE ITEM
+// router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+//   try {
+//     const imageUrl = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : null;
+//     const newItem = new Item({
+//       ...req.body,
+//       imageUrl,
+//       owner: req.user.id,
+//       ownerName: req.user.name
+//     });
+//     await newItem.save();
+//     res.status(201).json(newItem);
+//   } catch (err) { res.status(500).json({ error: 'Server error' }); }
+// });
+
+// CREATE ITEM
 router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   try {
     const imageUrl = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : null;
+    
+    // Explicitly creating the object ensures 'pricePerDay' is a Number, not a String
     const newItem = new Item({
-      ...req.body,
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      listingType: req.body.listingType,
+      // FORCE CONVERSION TO NUMBER HERE:
+      pricePerDay: Number(req.body.pricePerDay) || 0,
+      salePrice: Number(req.body.salePrice) || 0,
       imageUrl,
       owner: req.user.id,
       ownerName: req.user.name
     });
+
     await newItem.save();
     res.status(201).json(newItem);
-  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+  } catch (err) { 
+    console.error(err);
+    res.status(500).json({ error: 'Server error' }); 
+  }
 });
 
 // UPDATE STATUS (Called by Order Service)

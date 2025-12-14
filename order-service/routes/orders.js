@@ -15,18 +15,32 @@ router.get('/dashboard/customer', authMiddleware, async (req, res) => {
         `;
         const result = await session.run(cypher, { userId: req.user.id });
         
-        const history = result.records.map(record => ({
-            _id: record.get('itemId'),
-            name: record.get('name'),
-            price: record.get('price'),
-            imageUrl: record.get('image'),
-            type: record.get('type'),
-            date: record.get('date')
-        }));
+        const history = result.records.map(record => {
+            const type = record.get('type');
+            const price = record.get('price'); // This comes from Neo4j
+
+            return {
+                _id: record.get('itemId'),
+                name: record.get('name'),
+                imageUrl: record.get('image'),
+                // --- FIX STARTS HERE ---
+                // 1. Map 'type' to 'listingType' so the frontend if-statement works
+                listingType: type, 
+                
+                // 2. Assign price to the specific field the frontend expects
+                pricePerDay: type === 'borrow' ? Number(price) : 0,
+                salePrice: type === 'sale' ? Number(price) : 0,
+                
+                // 3. Add status just in case
+                status: type === 'sale' ? 'Sold' : 'Borrowed',
+                date: record.get('date')
+                // --- FIX ENDS HERE ---
+            };
+        });
 
         res.json({
-            borrowed: history.filter(h => h.type === 'borrow'),
-            purchased: history.filter(h => h.type === 'sale')
+            borrowed: history.filter(h => h.listingType === 'borrow'),
+            purchased: history.filter(h => h.listingType === 'sale')
         });
     } catch (err) {
         console.error(err);
@@ -40,8 +54,6 @@ router.get('/dashboard/customer', authMiddleware, async (req, res) => {
 router.get('/dashboard/recommendations', authMiddleware, async (req, res) => {
     const session = getSession();
     try {
-        // Simple recommendation: Find items borrowed by people who borrowed what I borrowed
-        // "Users who bought X also bought Y"
         const cypher = `
             MATCH (me:User {id: $userId})-[:TRANSACTION]->(:Item)<-[:TRANSACTION]-(other:User)-[:TRANSACTION]->(rec:Item)
             WHERE NOT (me)-[:TRANSACTION]->(rec)
@@ -63,17 +75,14 @@ router.get('/dashboard/recommendations', authMiddleware, async (req, res) => {
 });
 
 // EXECUTE ORDER (Borrow/Buy)
-// Matches original routes: PUT /api/items/:id/borrow -> routed to Gateway /api/orders/borrow/:id?
-// Actually, easier to keep new clean route: POST /api/orders
 router.post('/', authMiddleware, async (req, res) => {
-    const { itemId, type } = req.body; // type = 'borrow' or 'sale'
+    const { itemId, type } = req.body; 
     const userId = req.user.id;
     const session = getSession();
 
     try {
         // 1. Get Item Details from Product Service
         const productRes = await axios.get(`${process.env.PRODUCT_SERVICE_URL}/api/items`);
-        // Note: In real app, implement GET /api/items/:id in Product Service to be more efficient
         const item = productRes.data.find(i => i._id === itemId);
 
         if (!item || item.status !== 'Available') {
@@ -120,17 +129,6 @@ router.post('/', authMiddleware, async (req, res) => {
     } finally {
         await session.close();
     }
-});
-
-// Legacy support routes (Mapped by Gateway)
-// The frontend calls PUT /api/items/:id/borrow. Gateway routes to POST /api/orders/legacy/borrow/:id
-router.put('/legacy/borrow/:id', authMiddleware, async (req, res) => {
-    req.body.itemId = req.params.id;
-    req.body.type = 'borrow';
-    // Forward to main handler (logic copied for simplicity in this example)
-    // ... (Call the logic above) ...
-    // For now, let's just ask the user to use the new route or implement a redirect handler.
-    res.redirect(307, '/api/orders'); 
 });
 
 export default router;

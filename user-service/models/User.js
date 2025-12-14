@@ -8,11 +8,19 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+// userSchema.pre('save', async function (next) {
+//   if (!this.isModified('password')) return next();
+//   const salt = await bcrypt.genSalt(10);
+//   this.password = await bcrypt.hash(this.password, salt);
+//   next();
+// });
+userSchema.pre('save', async function () {
+  // 1. Remove 'next' from the arguments
+  if (!this.isModified('password')) return; // 2. Just return nothing to exit
+  
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
+  // 3. No need to call next() at the end
 });
 
 userSchema.methods.comparePassword = function (candidatePassword) {
